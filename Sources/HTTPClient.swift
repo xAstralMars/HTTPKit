@@ -42,13 +42,19 @@ public struct NetworkClient {
                     throw error
                 }
                 
-                let jsonDecoder = JSONDecoder()
-                jsonDecoder.dateDecodingStrategy = .iso8601
-                let decodedResponse: T = try jsonDecoder.decode(T.self, from: data)
-                return decodedResponse
+                do {
+                    let jsonDecoder = JSONDecoder()
+                    jsonDecoder.dateDecodingStrategy = .iso8601
+                    let decodedResponse: T = try jsonDecoder.decode(T.self, from: data)
+                    return decodedResponse
+                } catch {
+                    print(String(describing: error))
+                }
             } catch {
                 lastError = error
                 attempts += 1
+                
+                print(String(describing: error))
             }
         }
 
