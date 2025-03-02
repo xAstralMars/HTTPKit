@@ -42,14 +42,25 @@ public struct NetworkClient {
                     throw error
                 }
                 
-//                do {
-                    let jsonDecoder = JSONDecoder()
-                    jsonDecoder.dateDecodingStrategy = .iso8601
-                    let decodedResponse: T = try jsonDecoder.decode(T.self, from: data)
-                    return decodedResponse
-//                } catch {
-//                    print(String(describing: error))
-//                }
+                //                do {
+                let formatter = ISO8601DateFormatter()
+                // Include fractional seconds in the format options.
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                
+                let jsonDecoder = JSONDecoder()
+                jsonDecoder.dateDecodingStrategy = .custom { decoder in
+                    let container = try decoder.singleValueContainer()
+                    let dateString = try container.decode(String.self)
+                    if let date = formatter.date(from: dateString) {
+                        return date
+                    }
+                    throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateString)")
+                }
+                let decodedResponse: T = try jsonDecoder.decode(T.self, from: data)
+                return decodedResponse
+                //                } catch {
+                //                    print(String(describing: error))
+                //                }
             } catch {
                 lastError = error
                 attempts += 1
